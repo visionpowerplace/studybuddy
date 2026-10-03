@@ -1,52 +1,49 @@
 
-# Study Buddy — Next.js Edition
+# Study Buddy — Real AI + Stripe Edition
 
-Patient, encouraging AI tutor that explains difficult topics fast in 3 layers.
+Now with **real OpenAI GPT-4o-mini** + **Stripe $9/mo paywall**.
 
-## Quick Deploy to Vercel (1-click)
+## 1. Env vars needed (Vercel → Settings → Environment Variables)
 
-1. Push this folder to GitHub
-2. Go to vercel.com/new → Import your repo
-3. Deploy → Live! Add custom domain in Settings → Domains
+```
+OPENAI_API_KEY=sk-proj-...
+STRIPE_SECRET_KEY=sk_live_... or sk_test_...
+NEXT_PUBLIC_BASE_URL=https://yourdomain.com (or your vercel.app URL)
+```
 
-Or via CLI:
-```bash
-npm i -g vercel
+Get keys:
+- OpenAI: platform.openai.com → API keys → Create
+- Stripe: dashboard.stripe.com → Developers → API keys
+
+## 2. Deploy
+
+Push to GitHub then vercel.com/new → Import
+
+Or:
+```
+npm install
+npm run build
 vercel --prod
 ```
 
-## Local dev
-```bash
-npm install
-npm run dev
-```
+## 3. Monetization Logic
 
-## Monetize Next Steps
+- 3 free explanations stored in localStorage (`sb_free_uses`)
+- After 3, paywall modal → Stripe Checkout
+- On success `?success=true` → sets `sb_pro=true` in localStorage
+- Upgrade to real auth later: add Clerk or Supabase, replace localStorage with DB check of stripe subscription.
 
-This version uses template logic (no API costs). To make it truly AI:
+### To make it production-secure:
+- Replace localStorage pro check with Stripe webhook:
+  Create `/app/api/webhook/route.ts` that listens to `checkout.session.completed`
+  Store customer email + subscription in Vercel KV / Supabase.
 
-1. **Add OpenAI API**
-   - Create `/app/api/explain/route.ts`
-   - Call `openai.chat.completions.create` with prompt: "You are Study Buddy..."
-   - Replace `generateExplanation()` with fetch to your API
+## 4. Costs
+- OpenAI gpt-4o-mini: ~ $0.001 per explanation → ~1000 explanations for $1
+- Stripe fee: 2.9% + 30c
+- Vercel hosting: free tier enough for start
 
-2. **Add Paywall**
-   - `npm install stripe @clerk/nextjs` or `supabase`
-   - In `page.tsx`, add:
-     ```ts
-     if (freeUses > 3) showPaywall()
-     ```
-   - Stripe Checkout link: dashboard.stripe.com → Create product $9/mo
+## Test Stripe
+Use card 4242 4242 4242 4242, any future date, CVC 123 to test.
 
-3. **Env vars** (Vercel → Settings → Environment Variables):
-   ```
-   OPENAI_API_KEY=sk-...
-   STRIPE_SECRET_KEY=sk_...
-   ```
-
-## Folder structure
-- app/page.tsx → main UI (converted from Meta AI artifact)
-- app/globals.css → Tailwind
-- Ready for Vercel, Netlify, Cloudflare Pages
-
-Built from Meta AI artifact → production Next.js.
+Ready to monetize!
